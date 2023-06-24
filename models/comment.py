@@ -6,8 +6,9 @@ class Comment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.Text)
-    user_id = db.column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    card_id = db.Column(db.Integer, db.ForeignKey('cards.id'), nullable=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+    card_id = db.Column(db.Integer, db.ForeignKey('cards.id'), nullable = False)
 
     user = db.relationship('User', back_populates='comments')
     card = db.relationship('Card', back_populates='comments')
@@ -21,4 +22,4 @@ class CommentSchema(ma.Schema):
         ordered = True
 
 comment_schema = CommentSchema()
-comments_schema = CommentSchema(Many=True)
+comments_schema = CommentSchema(many=True)
