@@ -65,10 +65,11 @@ def seed_db():
             priority='Medium',
             date=date.today(),
             user=users[1]
-        ),
+        )
     ]
         
-    db.session.ad_all(cards)
+    db.session.add_all(cards)
+    
     db.session.commit()
 
 
