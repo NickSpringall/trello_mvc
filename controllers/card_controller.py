@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from init import db
 from models.card import Card, cards_schema, card_schema
+from models.user import User
 from datetime import date
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from .comment_controller import comments_bp
@@ -26,7 +27,7 @@ def get_one_card(id):
 @cards_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_card():
-    body_data = request.get_json()
+    body_data = card_schema.load(request.get_json())
     # create a new card model instance
     card = Card(
         title = body_data.get('title'),
@@ -45,6 +46,9 @@ def create_card():
 @cards_bp.route('/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_one_card(id):
+    is_admin = authorise_as_admin()
+    if not is_admin:
+        return {'error': 'Not authorised to delete cards'}, 403
     stmt = db.select(Card). filter_by(id=id)
     card = db.session.scalar(stmt)
     if card:
@@ -58,7 +62,7 @@ def delete_one_card(id):
 @cards_bp.route('/<int:id>', methods=['PUT', 'PATCH'])
 @jwt_required()
 def update_one_card(id):
-    body_data = request.get_json()
+    body_data = card_schema.load(request.get_json(), partial=True)
     stmt = db.select(Card).filter_by(id=id)
     card = db.session.scalar(stmt)
     if card:
@@ -70,3 +74,8 @@ def update_one_card(id):
         return card_schema.dump(card)
     else: return {'error': f'card not found with id {id}'}, 404
 
+def authorise_as_admin():
+    user_id = get_jwt_identity()
+    stmt = db.select(User).filter_by(id=user_id)
+    user = db.session.scalar(stmt)
+    return user.is_admin
